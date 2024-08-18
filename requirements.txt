@@ -1,0 +1,15 @@
+requests~=2.28.2
+python-dateutil~=2.9.0.post0
+./broker_libs/NorenRestApi-0.0.28-py2.py3-none-any.whl
+pandas~=1.5.3
+smartapi-python
+pyotp~=2.9.0
+logzero
+numpy==1.26.4
+PyMySQL~=1.1.1
+websocket
+schedule
+pandas_ta
+crypto~=1.4.1
+pya3~=1.0.29
+paho-mqtt~=2.1.0
