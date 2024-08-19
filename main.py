@@ -3,7 +3,6 @@ import json
 import time
 
 from broker_libs.broker_methods import get_kite_broker, get_angel_broker, get_shoonya_broker
-from controllers import mqtt_publisher
 from controllers.data_signals_controller import DataSignalsController, get_applied_df_zerodha, get_applied_df_angel, \
     get_applied_df_shoonya
 from controllers.instruments_controller import InstrumentsController
