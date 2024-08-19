@@ -1,13 +1,12 @@
 import json
 from contextlib import closing
-from time import sleep
 
 import pymysql
 from pymysql.cursors import DictCursor
 
 from broker_libs.broker_methods import *
-from controllers import mqtt_publisher
 from controllers.logs_controller import LogsController
+from controllers.mqtt_publisher import MqttPublisher
 from database_config import db_config
 
 
@@ -19,7 +18,6 @@ def get_current_price(instrument, broker_id, broker):
     }
     method = get_ltp_methods.get(broker_id)
     ltp = method(broker, instrument)
-    sleep(0.5)
     return ltp
 
 
@@ -245,13 +243,17 @@ class PositionsController:
         return broker_details
 
     def analyze_to_take_position(self, applied_df, instrument, interval, broker_id, broker):
-        # Determine indices based on broker_id
-        candle_indices = {-2: -3, -1: -2} if broker_id in (1, 2) else {-1: -2, -2: -3}
+        mqtt_publisher = MqttPublisher()
+        if broker_id in (1, 2):
+            current_candle_index = -2
+            previous_candle_index = -3
+        else:
+            current_candle_index = -1
+            previous_candle_index = -2
 
         # Extract current and previous candles
-        current_candle = applied_df.iloc[candle_indices[-2]]
-        previous_candle = applied_df.iloc[candle_indices[-3]]
-
+        current_candle = applied_df.iloc[current_candle_index]
+        previous_candle = applied_df.iloc[previous_candle_index]
         # Check for existing position
         existing_position = self.check_for_existing_position(instrument)
 

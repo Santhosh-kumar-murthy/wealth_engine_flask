@@ -60,4 +60,6 @@ def get_ltp_zerodha(broker, instrument):
         '5minute',
     )
     time.sleep(0.5)
+    if candle_data.length == 0:
+        return 0
     return candle_data[-1]['close']

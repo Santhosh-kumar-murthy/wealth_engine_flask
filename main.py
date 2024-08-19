@@ -8,6 +8,7 @@ from controllers.data_signals_controller import DataSignalsController, get_appli
     get_applied_df_shoonya
 from controllers.instruments_controller import InstrumentsController
 from controllers.logs_controller import LogsController
+from controllers.mqtt_publisher import MqttPublisher
 from controllers.positions_controller import PositionsController
 from controllers.settings_controllers import SettingsController
 
@@ -63,6 +64,7 @@ if __name__ == '__main__':
                     active_fut_positions = positions_manager.get_all_active_fut_positions()
                     for position in active_fut_positions:
                         payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
+                        mqtt_publisher = MqttPublisher()
                         mqtt_publisher.publish_payload(payload)
                 time.sleep(4)
                 for instrument in observable_instruments:
