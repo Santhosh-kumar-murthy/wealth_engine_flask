@@ -38,7 +38,7 @@ def get_shoonya_broker(broker_config):
 
 
 def get_ltp_shoonya(broker, instrument):
-    val = broker.get_quotes('NFO', instrument['shoonya_token'])['lp']
+    val = broker.get_quotes('NFO', str(instrument['shoonya_token']))['lp']
     return val
 
 
