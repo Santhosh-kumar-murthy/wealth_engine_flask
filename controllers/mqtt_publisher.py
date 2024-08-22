@@ -13,8 +13,9 @@ class MqttPublisher:
         print("Message Published...", client, userdata, mid, a, b)
 
     def publish_payload(self, payload):
-        logs_controller = LogsController()
-        logs_controller.add_log(str(payload))
+        print(payload)
+        # logs_controller = LogsController()
+        # logs_controller.add_log(str(payload))
         # settings_controller = SettingsController()
         # settings = settings_controller.get_settings()
         # try:

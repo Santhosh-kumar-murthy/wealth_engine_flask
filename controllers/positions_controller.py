@@ -317,7 +317,8 @@ class PositionsController:
                 payload = create_position(2)
                 mqtt_publisher.publish_payload(payload)
             elif existing_position['instrument_position_type'] != 2:
-                status, message = self.exit_existing_position(existing_position, broker_id, broker, interval)
+                status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker, interval)
+                mqtt_publisher.publish_payload(exit_payload)
                 if status:
                     payload = create_position(2)
                     mqtt_publisher.publish_payload(payload)
