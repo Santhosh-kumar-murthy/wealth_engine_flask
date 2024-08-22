@@ -28,6 +28,7 @@ class Order:
         self.order_id = None
 
 
+# print(ret)
 
 
 def get_time(time_string):
@@ -69,5 +70,6 @@ class ShoonyaApiPy(NorenApi):
                                    quantity=order.quantity, discloseqty=order.discloseqty, price_type=order.price_type,
                                    price=order.price, trigger_price=order.trigger_price,
                                    retention=order.retention, remarks=order.remarks)
+        # print(ret)
 
         return ret

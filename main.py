@@ -40,40 +40,40 @@ if __name__ == '__main__':
 
     broker_cache = None
     active_broker_id = None
-
     while True:
-        try:
-            current_hour = datetime.datetime.now().hour
-            current_minute = datetime.datetime.now().minute
-            if current_minute % interval_minute == 0 and current_minute != last_executed_minute:
-                last_executed_minute = current_minute
-                active_system_use_broker = data_signal_controller.get_active_broker()
-                broker_id = active_system_use_broker['broker_id']
+        # try:
+        current_hour = datetime.datetime.now().hour
+        current_minute = datetime.datetime.now().minute
+        if current_minute % interval_minute == 0 and current_minute != last_executed_minute:
+            last_executed_minute = current_minute
+            active_system_use_broker = data_signal_controller.get_active_broker()
+            broker_id = active_system_use_broker['broker_id']
 
-                if broker_id != active_broker_id:
-                    config = json.loads(active_system_use_broker['broker_config_params'])
-                    broker = select_broker.get(broker_id)(config)
-                    broker_cache = broker
-                    active_broker_id = broker_id
+            if broker_id != active_broker_id:
+                config = json.loads(active_system_use_broker['broker_config_params'])
+                broker = select_broker.get(broker_id)(config)
+                broker_cache = broker
+                active_broker_id = broker_id
 
-                positions_manager = PositionsController()
-                interval = json.loads(active_system_use_broker['broker_time_frames'])[active_time_frame]
+            positions_manager = PositionsController()
+            interval = json.loads(active_system_use_broker['broker_time_frames'])[active_time_frame]
 
-                if current_hour == 15 and current_minute >= 15:
-                    active_fut_positions = positions_manager.get_all_active_fut_positions()
-                    for position in active_fut_positions:
-                        payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
-                        mqtt_publisher = MqttPublisher()
-                        mqtt_publisher.publish_payload(payload)
-                time.sleep(4)
-                for instrument in observable_instruments:
-                    get_applied_df_method = get_applied_df_methods.get(broker_id)
-                    if get_applied_df_method:
-                        applied_df = get_applied_df_method(instrument, broker_cache, interval)
-                        positions_manager.analyze_to_take_position(applied_df, instrument, interval, broker_id,
-                                                                   broker_cache)
-                    else:
-                        logs_controller.add_log(f"No method found for broker_id: {broker_id}")
-        except Exception as e:
-            logs_controller.add_log(f"Error occurred: {e}")
+            if current_hour == 15 and current_minute >= 15:
+                active_fut_positions = positions_manager.get_all_active_fut_positions()
+                for position in active_fut_positions:
+                    payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
+                    mqtt_publisher = MqttPublisher()
+                    mqtt_publisher.publish_payload(payload)
+            time.sleep(4)
+            for instrument in observable_instruments:
+                get_applied_df_method = get_applied_df_methods.get(broker_id)
+                if get_applied_df_method:
+                    applied_df = get_applied_df_method(instrument, broker_cache, interval)
+                    positions_manager.analyze_to_take_position(applied_df, instrument, interval, broker_id,
+                                                               broker_cache)
+                else:
+                    logs_controller.add_log(f"No method found for broker_id: {broker_id}")
+        # except Exception as e:
+        #     print(e)
+        #     logs_controller.add_log(f"Error occurred: {e}")
         time.sleep(60 - datetime.datetime.now().second)

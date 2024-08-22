@@ -293,6 +293,8 @@ class PositionsController:
                 }
             }
 
+        payload = create_position(1)
+
         # Handle long position
         if current_candle.pos == 1 and previous_candle.pos != 1:
             if existing_position is None:
@@ -389,7 +391,6 @@ class PositionsController:
         angel_query = queries.get('angel_long_query' if position_type == 2 else 'angel_short_query', 'Unknown')
         shoonaya_query = queries.get('shoonya_long_query' if position_type == 2 else 'shoonya_short_query', 'Unknown')
         alice_query = queries.get('alice_long_query' if position_type == 2 else 'alice_short_query', 'Unknown')
-
         with closing(self.conn.cursor()) as cursor:
             cursor.execute(zerodha_query,
                            (instrument['zerodha_name'], instrument_type, fut_current_price))
