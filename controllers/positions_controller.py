@@ -89,7 +89,7 @@ class PositionsController:
             self.conn.commit()
 
     def add_fut_to_positions(self, instrument, interval, position_type, instrument_position_type, broker_id, broker):
-        current_price = get_current_price(instrument, broker_id, broker),
+        current_price = get_current_price(instrument, broker_id, broker)
         with closing(self.conn.cursor()) as cursor:
             sql = '''
                 INSERT INTO fut_positions (
@@ -293,15 +293,14 @@ class PositionsController:
                 }
             }
 
-        payload = create_position(1)
-
         # Handle long position
         if current_candle.pos == 1 and previous_candle.pos != 1:
             if existing_position is None:
                 payload = create_position(1)
                 mqtt_publisher.publish_payload(payload)
             elif existing_position['instrument_position_type'] != 1:
-                status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker, interval)
+                status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker,
+                                                                            interval)
                 mqtt_publisher.publish_payload(exit_payload)
                 if status:
                     payload = create_position(1)
@@ -356,7 +355,7 @@ class PositionsController:
             zerodha_option = cursor.fetchone()
 
             cursor.execute(angel_query,
-                           (instrument['angel_name'], str(fut_current_price) + "00", "%" + instrument_type))
+                           (instrument['angel_name'], str(int(float(fut_current_price))) + "00", "%" + instrument_type))
             angel_option = cursor.fetchone()
 
             cursor.execute(shoonaya_query, (instrument['shoonya_name'], str(fut_current_price), instrument_type))
@@ -397,7 +396,7 @@ class PositionsController:
             zerodha_option = cursor.fetchone()
 
             cursor.execute(angel_query,
-                           (instrument['angel_name'], str(fut_current_price) + "00", "%" + instrument_type))
+                           (instrument['angel_name'], str(int(float(fut_current_price))) + "00", "%" + instrument_type))
             angel_option = cursor.fetchone()
 
             cursor.execute(shoonaya_query, (instrument['shoonya_name'], str(fut_current_price), instrument_type))
