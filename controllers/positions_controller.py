@@ -159,11 +159,10 @@ class PositionsController:
 
     def exit_existing_position(self, existing_position, broker_id, broker, interval):
         try:
-            exit_price = get_current_price(existing_position, broker_id, broker)
+            exit_price = float(get_current_price(existing_position, broker_id, broker))
             entry_price = float(existing_position['position_entry_price'])
             position_type = existing_position['instrument_position_type']
             profit = (exit_price - entry_price) if position_type == 1 else (entry_price - exit_price)
-
             with self.conn.cursor() as cursor:
                 # Update the future position
                 cursor.execute('''
@@ -199,8 +198,9 @@ class PositionsController:
                         sell_option_data = position
                         sell_option_ltp = option_ltp
 
-                    option_profit = (option_ltp - float(position['position_entry_price'])) if position[
-                                                                                                  'instrument_position_type'] == 1 \
+                    option_ltp = float(option_ltp)
+
+                    option_profit = (option_ltp - float(position['position_entry_price'])) if position['instrument_position_type'] == 1 \
                         else (float(position['position_entry_price']) - option_ltp)
 
                     cursor.execute('''
@@ -293,40 +293,44 @@ class PositionsController:
                 }
             }
 
-        # Handle long position
-        if current_candle.pos == 1 and previous_candle.pos != 1:
-            if existing_position is None:
-                payload = create_position(1)
-                mqtt_publisher.publish_payload(payload)
-            elif existing_position['instrument_position_type'] != 1:
-                status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker,
-                                                                            interval)
-                mqtt_publisher.publish_payload(exit_payload)
-                if status:
-                    payload = create_position(1)
-                    mqtt_publisher.publish_payload(payload)
-                else:
-                    self.logs_controller.add_log(message)
-            else:
-                log_msg = f"Long Position for instrument already exists for long OID: {existing_position['observable_instrument_id']}"
-                self.logs_controller.add_log(log_msg)
-
-        # Handle short position
-        elif current_candle.pos == -1 and previous_candle.pos != -1:
-            if existing_position is None:
-                payload = create_position(2)
-                mqtt_publisher.publish_payload(payload)
-            elif existing_position['instrument_position_type'] != 2:
-                status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker, interval)
-                mqtt_publisher.publish_payload(exit_payload)
-                if status:
-                    payload = create_position(2)
-                    mqtt_publisher.publish_payload(payload)
-                else:
-                    self.logs_controller.add_log(message)
-            else:
-                log_msg = f"Short Position for instrument already exists for short OID: {existing_position['observable_instrument_id']}"
-                self.logs_controller.add_log(log_msg)
+        status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker,
+                                                                    interval)
+        mqtt_publisher.publish_payload(exit_payload)
+        #
+        # # Handle long position
+        # if current_candle.pos == 1 and previous_candle.pos != 1:
+        #     if existing_position is None:
+        #         payload = create_position(1)
+        #         mqtt_publisher.publish_payload(payload)
+        #     elif existing_position['instrument_position_type'] != 1:
+        #         status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker,
+        #                                                                     interval)
+        #         mqtt_publisher.publish_payload(exit_payload)
+        #         if status:
+        #             payload = create_position(1)
+        #             mqtt_publisher.publish_payload(payload)
+        #         else:
+        #             self.logs_controller.add_log(message)
+        #     else:
+        #         log_msg = f"Long Position for instrument already exists for long OID: {existing_position['observable_instrument_id']}"
+        #         self.logs_controller.add_log(log_msg)
+        #
+        # # Handle short position
+        # elif current_candle.pos == -1 and previous_candle.pos != -1:
+        #     if existing_position is None:
+        #         payload = create_position(2)
+        #         mqtt_publisher.publish_payload(payload)
+        #     elif existing_position['instrument_position_type'] != 2:
+        #         status, message, exit_payload = self.exit_existing_position(existing_position, broker_id, broker, interval)
+        #         mqtt_publisher.publish_payload(exit_payload)
+        #         if status:
+        #             payload = create_position(2)
+        #             mqtt_publisher.publish_payload(payload)
+        #         else:
+        #             self.logs_controller.add_log(message)
+        #     else:
+        #         log_msg = f"Short Position for instrument already exists for short OID: {existing_position['observable_instrument_id']}"
+        #         self.logs_controller.add_log(log_msg)
 
     def get_option_for_buying(self, instrument, position_type, fut_current_price):
         instrument_types = {
