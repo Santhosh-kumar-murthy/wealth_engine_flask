@@ -61,9 +61,11 @@ if __name__ == '__main__':
                 if current_hour == 15 and 15 <= current_minute < 20:
                     active_fut_positions = positions_manager.get_all_active_fut_positions()
                     for position in active_fut_positions:
-                        payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
+                        expiry_exit_payload = positions_manager.exit_expiry_instruments(position, broker_id, broker_cache, interval)
+                        intraday_exit_payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
                         mqtt_publisher = MqttPublisher()
-                        mqtt_publisher.publish_payload(payload)
+                        mqtt_publisher.publish_payload(intraday_exit_payload)
+                        mqtt_publisher.publish_payload(expiry_exit_payload)
                 time.sleep(4)
                 for instrument in observable_instruments:
                     get_applied_df_method = get_applied_df_methods.get(broker_id)

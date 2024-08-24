@@ -490,3 +490,13 @@ class PositionsController:
                 }
             }
         return payload
+
+    def exit_expiry_instruments(self, fut_position, broker_id, broker_cache, interval):
+        with closing(self.conn.cursor()) as cursor:
+            cursor.execute(
+                'SELECT zerodha_expiry,angel_expiry,shoonya_expiry,alice_expiry_date FROM observable_instruments WHERE o_id = %s',
+                fut_position['observable_instrument_id'])
+            expiry_date = cursor.fetchone()
+            if expiry_date['zerodha_expiry'] == datetime.datetime.today():
+                status, message, exit_payload = self.exit_existing_position(fut_position, broker_id, broker_cache, interval)
+                return exit_payload
