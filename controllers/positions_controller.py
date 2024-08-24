@@ -294,7 +294,10 @@ class PositionsController:
                 }
             }
 
-        # Handle long position
+        if instrument['zerodha_expiry'] == datetime.date.today() and datetime.datetime.now().time() > datetime.time(15, 10):
+            return
+
+            # Handle long position
         if current_candle.pos == 1 and previous_candle.pos != 1:
             if existing_position is None:
                 payload = create_position(1)
@@ -498,5 +501,6 @@ class PositionsController:
                 fut_position['observable_instrument_id'])
             expiry_date = cursor.fetchone()
             if expiry_date['zerodha_expiry'] == datetime.datetime.today():
-                status, message, exit_payload = self.exit_existing_position(fut_position, broker_id, broker_cache, interval)
+                status, message, exit_payload = self.exit_existing_position(fut_position, broker_id, broker_cache,
+                                                                            interval)
                 return exit_payload
