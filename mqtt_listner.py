@@ -30,4 +30,4 @@ client.connect(broker_address, broker_port)
 client.subscribe(topic)
 
 # Start the loop to process network traffic, dispatch callbacks, and handle reconnecting
-client.loop_start()
+client.loop_forever()
