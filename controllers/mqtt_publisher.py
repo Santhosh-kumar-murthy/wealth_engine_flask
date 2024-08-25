@@ -27,7 +27,10 @@ class MqttPublisher:
             mqtt_port = int(settings['mqtt_port'])
             keep_alive_interval = 45
             mqtt_topic = settings['mqtt_topic']
+            mqtt_username = "wealthi_admin"
+            mqtt_password = "Wealthi@#123"
             mqtt_client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+            mqtt_client.username_pw_set(mqtt_username, mqtt_password)
             mqtt_client.on_publish = self.on_publish
             mqtt_client.connect(mqtt_host, mqtt_port, keep_alive_interval)
             mqtt_client.publish(mqtt_topic, mqtt_msg)

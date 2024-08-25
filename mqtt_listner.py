@@ -1,43 +1,33 @@
-# Import package
-import json
-
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 
-# Define Variables
-MQTT_HOST = "192.168.0.118"
-MQTT_PORT = 1883
-MQTT_KEEPALIVE_INTERVAL = 45
-MQTT_TOPIC = "helloTopic"
-MQTT_MSG = "hello MQTT"
-
-
-# Define on connect event function
-# We shall subscribe to our Topic in this function
-def on_connect(mosq, obj, rc, a, b):
-    mqttc.subscribe(MQTT_TOPIC, 0)
+# Define the MQTT broker details
+broker_address = '150.242.200.220'  # Replace with your VPS IP or domain
+broker_port = 1883  # Default MQTT port
+mqtt_username = "wealthi_admin"  # Replace with your MQTT username
+mqtt_password = "Wealthi@#123"  # Replace with your MQTT password
+topic = "wealthi/getPayload"  # The topic to subscribe to or publish to
 
 
-# Define on_message event function.
-# This function will be invoked every time,
-# a new message arrives for the subscribed topic
-def on_message(mosq, obj, msg):
-    trade = json.loads(msg.payload.decode('utf-8'))
-    print(trade)
-
-def on_subscribe(mosq, obj, mid, granted_qos, c):
-    print("Subscribed to Topic: " + MQTT_MSG + " with QoS: " + str(granted_qos))
+# The callback function to be called when the client receives a message
+def on_message(client, userdata, message):
+    print(f"Received message: {str(message.payload.decode('utf-8'))} on topic {message.topic}")
 
 
-# Initiate MQTT Client
-mqttc = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+# Create a new MQTT client instance
+client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
 
-# Assign event callbacks
-mqttc.on_message = on_message
-mqttc.on_connect = on_connect
-mqttc.on_subscribe = on_subscribe
+# Set the username and password for the connection
+client.username_pw_set(mqtt_username, mqtt_password)
 
-# Connect with MQTT Broker
-mqttc.connect(MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL)
+# Attach the callback function to the client
+client.on_message = on_message
 
-# Continue monitoring the incoming messages for subscribed topic
-mqttc.loop_forever()
+# Connect to the broker
+client.connect(broker_address, broker_port)
+
+# Subscribe to a topic
+client.subscribe(topic)
+
+# Start the loop to process network traffic, dispatch callbacks, and handle reconnecting
+client.loop_start()
