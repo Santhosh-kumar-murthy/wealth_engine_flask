@@ -7,7 +7,6 @@ from controllers.data_signals_controller import DataSignalsController, get_appli
     get_applied_df_shoonya
 from controllers.instruments_controller import InstrumentsController
 from controllers.logs_controller import LogsController
-from controllers.mqtt_publisher import MqttPublisher
 from controllers.positions_controller import PositionsController
 from controllers.settings_controllers import SettingsController
 
@@ -57,15 +56,6 @@ if __name__ == '__main__':
 
                 positions_manager = PositionsController()
                 interval = json.loads(active_system_use_broker['broker_time_frames'])[active_time_frame]
-
-                if current_hour == 15 and 15 <= current_minute < 20:
-                    active_fut_positions = positions_manager.get_all_active_fut_positions()
-                    for position in active_fut_positions:
-                        expiry_exit_payload = positions_manager.exit_expiry_instruments(position, broker_id, broker_cache, interval)
-                        intraday_exit_payload = positions_manager.get_force_exit_payload(position, broker_id, broker_cache, interval)
-                        mqtt_publisher = MqttPublisher()
-                        mqtt_publisher.publish_payload(intraday_exit_payload)
-                        mqtt_publisher.publish_payload(expiry_exit_payload)
                 time.sleep(4)
                 for instrument in observable_instruments:
                     get_applied_df_method = get_applied_df_methods.get(broker_id)
