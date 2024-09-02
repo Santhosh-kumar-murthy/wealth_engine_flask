@@ -264,7 +264,7 @@ class PositionsController:
 
         # Handle long position
         if current_candle.pos == 1 and previous_candle.pos != 1:
-            if existing_positions is None:
+            if not existing_positions:
                 payload = create_position(1)
                 mqtt_publisher.publish_payload(payload)
             else:
@@ -285,7 +285,7 @@ class PositionsController:
 
         # Handle short position
         elif current_candle.pos == -1 and previous_candle.pos != -1:
-            if existing_positions is None:
+            if not existing_positions:
                 payload = create_position(2)
                 mqtt_publisher.publish_payload(payload)
             else:
@@ -398,7 +398,6 @@ class PositionsController:
         buy_option_current_price = get_current_price(buy_option_data[broker_map], broker_id, broker)
         sell_option_current_price = get_current_price(sell_option_data[broker_map], broker_id, broker)
         with closing(self.conn.cursor()) as cursor:
-            print(instrument['o_id'])
             cursor.execute(
                 "INSERT INTO positions (observable_instrument_id, zerodha_instrument_token, zerodha_trading_symbol, zerodha_name, zerodha_exchange, "
                 "angel_token, angel_symbol, angel_name, angel_exchange, "
