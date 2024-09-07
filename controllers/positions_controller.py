@@ -262,25 +262,32 @@ class PositionsController:
                 }
             }
 
+        # # simulation
+        # current_candle.pos = -1
+        # previous_candle.pos = 1
+
         # Handle long position
         if current_candle.pos == 1 and previous_candle.pos != 1:
             if not existing_positions:
                 payload = create_position(1)
                 mqtt_publisher.publish_payload(payload)
             else:
+                take_position_flag = False
                 for existing_position in existing_positions:
                     if existing_position['position_type'] != 1:
+                        take_position_flag = True
                         status, message, exit_payload = self.exit_existing_position(existing_position, broker_id,
                                                                                     broker)
                         if status:
                             mqtt_publisher.publish_payload(exit_payload)
-                            payload = create_position(1)
-                            mqtt_publisher.publish_payload(payload)
                         else:
                             self.logs_controller.add_log(message)
                     else:
                         log_msg = f"Long Position for instrument already exists for long OID: {existing_position['observable_instrument_id']}"
                         self.logs_controller.add_log(log_msg)
+                if take_position_flag:
+                    payload = create_position(1)
+                    mqtt_publisher.publish_payload(payload)
 
         # Handle short position
         elif current_candle.pos == -1 and previous_candle.pos != -1:
@@ -288,19 +295,22 @@ class PositionsController:
                 payload = create_position(2)
                 mqtt_publisher.publish_payload(payload)
             else:
+                take_position_flag = False
                 for existing_position in existing_positions:
-                    if existing_position['instrument_position_type'] != 2:
+                    if existing_position['position_type'] != 2:
+                        take_position_flag = True
                         status, message, exit_payload = self.exit_existing_position(existing_position, broker_id,
                                                                                     broker)
                         if status:
                             mqtt_publisher.publish_payload(exit_payload)
-                            payload = create_position(2)
-                            mqtt_publisher.publish_payload(payload)
                         else:
                             self.logs_controller.add_log(message)
                     else:
                         log_msg = f"Short Position for instrument already exists for short OID: {existing_position['observable_instrument_id']}"
                         self.logs_controller.add_log(log_msg)
+                if take_position_flag:
+                    payload = create_position(2)
+                    mqtt_publisher.publish_payload(payload)
 
     def get_option_for_buying(self, instrument, position_type, fut_current_price):
         instrument_types = {
@@ -403,8 +413,8 @@ class PositionsController:
                 "shoonya_token, shoonya_trading_symbol, shoonya_name, shoonya_exchange, "
                 "alice_token, alice_trading_symbol, alice_name, alice_exchange, "
                 "instrument_position_type,position_type, position_entry_time, position_entry_price, "
-                "position_qty, time_frame) VALUES "
-                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s)",
+                "lot_size,position_qty, time_frame) VALUES "
+                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s)",
                 (instrument['o_id'], buy_option_data['zerodha_option']['zerodha_instrument_token'],
                  buy_option_data['zerodha_option']['zerodha_trading_symbol'],
                  buy_option_data['zerodha_option']['zerodha_name'],
@@ -421,14 +431,14 @@ class PositionsController:
                  buy_option_data['alice_option']['alice_symbol'], buy_option_data['alice_option']['alice_exchange'],
                  3,
                  position_type,
-                 buy_option_current_price, buy_option_data['zerodha_option']['zerodha_lot_size'], interval))
+                 buy_option_current_price, buy_option_data['zerodha_option']['zerodha_lot_size'], 1, interval))
             cursor.execute(
                 "INSERT INTO positions (observable_instrument_id, zerodha_instrument_token, zerodha_trading_symbol, zerodha_name, zerodha_exchange, "
                 "angel_token, angel_symbol, angel_name, angel_exchange, "
                 "shoonya_token, shoonya_trading_symbol, shoonya_name, shoonya_exchange, "
                 "alice_token, alice_trading_symbol, alice_name, alice_exchange, "
-                "instrument_position_type,position_type, position_entry_time, position_entry_price, position_qty, time_frame) VALUES "
-                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s)",
+                "instrument_position_type,position_type, position_entry_time, position_entry_price, lot_size,position_qty, time_frame) VALUES "
+                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s)",
                 (instrument['o_id'], buy_option_data['zerodha_option']['zerodha_instrument_token'],
                  sell_option_data['zerodha_option']['zerodha_trading_symbol'],
                  sell_option_data['zerodha_option']['zerodha_name'],
@@ -444,6 +454,6 @@ class PositionsController:
                  sell_option_data['alice_option']['alice_trading_symbol'],
                  sell_option_data['alice_option']['alice_symbol'], sell_option_data['alice_option']['alice_exchange'],
                  4, position_type,
-                 sell_option_current_price, sell_option_data['zerodha_option']['zerodha_lot_size'], interval))
+                 sell_option_current_price, sell_option_data['zerodha_option']['zerodha_lot_size'], 1, interval))
         self.conn.commit()
         return buy_option_current_price, sell_option_current_price

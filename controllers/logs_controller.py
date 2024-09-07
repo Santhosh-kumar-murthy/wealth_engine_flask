@@ -24,7 +24,6 @@ class LogsController:
             self.conn.commit()
 
     def add_log(self, log_content):
-        print(log_content)
         with closing(self.conn.cursor()) as cursor:
             cursor.execute('''
             INSERT INTO system_logs (log_content,log_date_time)
