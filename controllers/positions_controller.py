@@ -59,7 +59,8 @@ class PositionsController:
                                 profit FLOAT,
                                 lot_size INT,
                                 position_qty INT,
-                                time_frame VARCHAR(255)  
+                                time_frame VARCHAR(255),
+                                expiry DATE  
                             )
                         ''')
             self.conn.commit()
@@ -142,8 +143,9 @@ class PositionsController:
                     position_entry_price,
                     lot_size,
                     position_qty,
-                    time_frame
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,NOW(), %s, %s, %s, %s)
+                    time_frame,
+                    expiry
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,NOW(), %s, %s, %s, %s,%s)
             '''
             cursor.execute(sql, (
                 instrument['o_id'],
@@ -168,7 +170,8 @@ class PositionsController:
                 current_price,
                 fut_obj['shoonya']['shoonya_lot_size'],
                 1,
-                interval
+                interval,
+                fut_obj['zerodha']['zerodha_expiry'],
             ))
             self.conn.commit()
             return fut_obj, current_price
@@ -414,8 +417,8 @@ class PositionsController:
                 "shoonya_token, shoonya_trading_symbol, shoonya_name, shoonya_exchange, "
                 "alice_token, alice_trading_symbol, alice_name, alice_exchange, "
                 "instrument_position_type,position_type, position_entry_time, position_entry_price, "
-                "lot_size,position_qty, time_frame) VALUES "
-                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s)",
+                "lot_size,position_qty, time_frame,expiry) VALUES "
+                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s,%s)",
                 (instrument['o_id'], buy_option_data['zerodha_option']['zerodha_instrument_token'],
                  buy_option_data['zerodha_option']['zerodha_trading_symbol'],
                  buy_option_data['zerodha_option']['zerodha_name'],
@@ -432,14 +435,15 @@ class PositionsController:
                  buy_option_data['alice_option']['alice_symbol'], buy_option_data['alice_option']['alice_exchange'],
                  3,
                  position_type,
-                 buy_option_current_price, buy_option_data['zerodha_option']['zerodha_lot_size'], 1, interval))
+                 buy_option_current_price, buy_option_data['zerodha_option']['zerodha_lot_size'], 1, interval,
+                 buy_option_data['zerodha_option']['zerodha_expiry']))
             cursor.execute(
                 "INSERT INTO positions (observable_instrument_id, zerodha_instrument_token, zerodha_trading_symbol, zerodha_name, zerodha_exchange, "
                 "angel_token, angel_symbol, angel_name, angel_exchange, "
                 "shoonya_token, shoonya_trading_symbol, shoonya_name, shoonya_exchange, "
                 "alice_token, alice_trading_symbol, alice_name, alice_exchange, "
-                "instrument_position_type,position_type, position_entry_time, position_entry_price, lot_size,position_qty, time_frame) VALUES "
-                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s)",
+                "instrument_position_type,position_type, position_entry_time, position_entry_price, lot_size,position_qty, time_frame,expiry) VALUES "
+                "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s,%s,%s,%s,%s)",
                 (instrument['o_id'], buy_option_data['zerodha_option']['zerodha_instrument_token'],
                  sell_option_data['zerodha_option']['zerodha_trading_symbol'],
                  sell_option_data['zerodha_option']['zerodha_name'],
@@ -455,11 +459,12 @@ class PositionsController:
                  sell_option_data['alice_option']['alice_trading_symbol'],
                  sell_option_data['alice_option']['alice_symbol'], sell_option_data['alice_option']['alice_exchange'],
                  4, position_type,
-                 sell_option_current_price, sell_option_data['zerodha_option']['zerodha_lot_size'], 1, interval))
+                 sell_option_current_price, sell_option_data['zerodha_option']['zerodha_lot_size'], 1, interval,
+                 sell_option_data['zerodha_option']['zerodha_expiry']))
         self.conn.commit()
         return buy_option_current_price, sell_option_current_price
 
     def get_a_position(self, position_id):
         with closing(self.conn.cursor()) as cursor:
-            cursor.execute("SELECT * FROM positions where position_id = %s",position_id)
+            cursor.execute("SELECT * FROM positions where position_id = %s", position_id)
             return cursor.fetchone()
