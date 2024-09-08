@@ -196,6 +196,7 @@ class PositionsController:
                 ''', (exit_price, profit, existing_position['position_id']))
                 self.conn.commit()
             return True, 'Success', {
+                "trade_type": "exit",
                 "exit_existing_position": existing_position,
                 "exit_price": exit_price,
                 "position_type": position_type

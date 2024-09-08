@@ -5,6 +5,7 @@ from paho.mqtt.enums import CallbackAPIVersion
 
 from broker_libs.broker_methods import get_kite_broker, get_angel_broker, get_shoonya_broker
 from controllers.data_signals_controller import DataSignalsController
+from controllers.mqtt_publisher import MqttPublisher
 from controllers.positions_controller import PositionsController
 from controllers.settings_controller import MqttSettingsController
 
@@ -33,14 +34,18 @@ def on_message(client, userdata, message):
             decoded_payload = json.loads(decoded_payload)
         if isinstance(decoded_payload, dict):
             if decoded_payload.get('type') == 'force_exit':
+                mqtt_publisher = MqttPublisher()
                 active_system_use_broker = data_signal_controller.get_active_broker()
                 broker_id = active_system_use_broker['broker_id']
                 config = json.loads(active_system_use_broker['broker_config_params'])
                 broker = select_broker.get(broker_id)(config)
                 position = positions_controller.get_a_position(decoded_payload.get('pos_id'))
-                res = positions_controller.exit_existing_position(existing_position=position, broker_id=broker_id,
-                                                                  broker=broker)
-                print(res)
+                status, message, exit_payload = positions_controller.exit_existing_position(existing_position=position,
+                                                                                            broker_id=broker_id,
+                                                                                            broker=broker)
+                print(exit_payload)
+                mqtt_publisher.publish_payload(exit_payload)
+
     except json.JSONDecodeError as e:
         print(e)
 

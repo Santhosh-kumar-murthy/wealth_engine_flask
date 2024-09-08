@@ -1,8 +1,7 @@
 import datetime
 
-import winsound
-
 import paho.mqtt.client as mqtt
+import winsound
 from paho.mqtt.enums import CallbackAPIVersion
 
 # Define the MQTT broker details
@@ -15,8 +14,9 @@ topic = "wealthi/getPayload"  # The topic to subscribe to or publish to
 
 # The callback function to be called when the client receives a message
 def on_message(client, userdata, message):
-    print(f"Received message: {str(message.payload.decode('utf-8'))} {str(datetime.datetime.now())} on topic {message.topic}")
-    winsound.Beep(1000,3000)
+    print(
+        f"Received message: {str(message.payload.decode('utf-8'))} {str(datetime.datetime.now())} on topic {message.topic}")
+    winsound.Beep(1000, 3000)
 
 
 # Create a new MQTT client instance
