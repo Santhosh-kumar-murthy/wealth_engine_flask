@@ -5,7 +5,7 @@ import pymysql
 from pymysql.cursors import DictCursor
 
 from controllers.logs_controller import LogsController
-from controllers.settings_controller import SettingsController
+from controllers.settings_controller import MqttSettingsController
 from database_config import db_config
 
 
@@ -19,7 +19,7 @@ class MqttPublisher:
     def publish_payload(self, payload):
         logs_controller = LogsController()
         logs_controller.add_log(str(payload))
-        settings_controller = SettingsController()
+        settings_controller = MqttSettingsController()
         settings = settings_controller.get_settings()
         try:
             mqtt_msg = json.dumps(payload, default=str)

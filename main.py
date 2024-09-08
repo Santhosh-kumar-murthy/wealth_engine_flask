@@ -7,7 +7,8 @@ from controllers.data_signals_controller import DataSignalsController, get_appli
     get_applied_df_shoonya
 from controllers.instruments_controller import InstrumentsController
 from controllers.logs_controller import LogsController
-from controllers.positions_controller import PositionsController
+from controllers.mqtt_publisher import MqttPublisher
+from controllers.positions_controller import PositionsController, get_current_price
 from controllers.settings_controllers import SettingsController
 
 
@@ -61,8 +62,22 @@ if __name__ == '__main__':
                     get_applied_df_method = get_applied_df_methods.get(broker_id)
                     if get_applied_df_method:
                         applied_df = get_applied_df_method(instrument, broker_cache, interval)
-                        positions_manager.analyze_to_take_position(applied_df, instrument, interval, broker_id,
-                                                                   broker_cache)
+                        if current_hour == 15 and current_minute >= 15:
+                            mqtt_publisher = MqttPublisher()
+                            existing_positions = positions_manager.check_for_existing_position(instrument)
+                            for existing_position in existing_positions:
+                                exit_price = float(get_current_price(existing_position, broker_id, broker_cache))
+                                entry_price = float(existing_position['position_entry_price'])
+                                position_type = existing_position['position_type']
+                                payload = {
+                                    "intraday_exit_position": existing_position,
+                                    "exit_price": exit_price,
+                                    "position_type": position_type
+                                }
+                                mqtt_publisher.publish_payload(payload)
+                        else:
+                            positions_manager.analyze_to_take_position(applied_df, instrument, interval, broker_id,
+                                                                       broker_cache)
                     else:
                         logs_controller.add_log(f"No method found for broker_id: {broker_id}")
         except Exception as e:

@@ -196,7 +196,7 @@ class PositionsController:
                 ''', (exit_price, profit, existing_position['position_id']))
                 self.conn.commit()
             return True, 'Success', {
-                "existing_position": existing_position,
+                "exit_existing_position": existing_position,
                 "exit_price": exit_price,
                 "position_type": position_type
             }
@@ -457,3 +457,8 @@ class PositionsController:
                  sell_option_current_price, sell_option_data['zerodha_option']['zerodha_lot_size'], 1, interval))
         self.conn.commit()
         return buy_option_current_price, sell_option_current_price
+
+    def get_a_position(self, position_id):
+        with closing(self.conn.cursor()) as cursor:
+            cursor.execute("SELECT * FROM positions where position_id = %s",position_id)
+            return cursor.fetchone()

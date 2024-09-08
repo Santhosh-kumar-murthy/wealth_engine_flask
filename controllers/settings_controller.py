@@ -4,7 +4,7 @@ from pymysql.cursors import DictCursor
 from database_config import db_config
 
 
-class SettingsController:
+class MqttSettingsController:
     def __init__(self):
         self.conn = pymysql.connect(**db_config, cursorclass=DictCursor)
         self.create_settings_table()
