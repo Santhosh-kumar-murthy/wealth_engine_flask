@@ -188,8 +188,8 @@ class PositionsController:
         try:
             exit_price = float(get_current_price(existing_position, broker_id, broker))
             entry_price = float(existing_position['position_entry_price'])
-            position_type = existing_position['position_type']
-            profit = (exit_price - entry_price) if position_type == 1 else (entry_price - exit_price)
+            position_type = existing_position['instrument_position_type']
+            profit = (exit_price - entry_price) if (position_type == 1 or position_type == 3) else (entry_price - exit_price)
             with self.conn.cursor() as cursor:
                 # Update the future position
                 cursor.execute('''
